@@ -15,7 +15,7 @@
     <link
       rel="icon"
       type="image/x-icon"
-      href="{{ url_for('static', filename='assets/favicon.ico') }}"
+      href="{{ S3_ARN ~ '/static/assets/favicon.ico' }}"
     />
     <!-- Font Awesome icons (free version)-->
     <script
@@ -35,8 +35,7 @@
     />
     <!-- Core theme CSS (includes Bootstrap)-->
     <link
-      href="{{ url_for('static', filename='css/styles.css') }}"
-      rel="stylesheet"
+    rel="stylesheet" href="{{ S3_ARN ~ '/static/css/styles.css' }}"
     />
     {% endblock %}
   </head>

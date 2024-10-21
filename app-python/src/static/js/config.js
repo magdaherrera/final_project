@@ -26,6 +26,6 @@ CKEDITOR.editorConfig = function (config) {
     config.removeDialogTabs = 'image:advanced;link:advanced';
     
     // Optional: Change skin/theme of the editor
-    config.skin = 'moono-lisa';  // You can use 'moono', 'moono-lisa', or other available skins
+    config.skin = 'moono';  // You can use 'moono', 'moono-lisa', or other available skins
 };
 

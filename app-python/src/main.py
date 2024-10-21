@@ -13,22 +13,17 @@ from sqlalchemy.orm import relationship
 # Import your forms from the forms.py
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 
-'''
-Make sure the required packages are installed: 
-Open the Terminal in PyCharm (bottom left). 
-
-On Windows type:
-python -m pip install -r requirements.txt
-
-On MacOS type:
-pip3 install -r requirements.txt
-
-This will install the packages from the requirements.txt for this project.
-'''
+import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
-app.config['CKEDITOR_CUSTOM_CONFIG'] = 'js/config.js'
+app.config['CKEDITOR_PKG_TYPE'] = 'basic'
+#app.config['CKEDITOR_CUSTOM_CONFIG'] = 'static/js/config.js'
+
+app.config['SERVER_NAME'] = "https://2nj6chaqvovtf6jn2zfxev4yc40gtynj.lambda-url.us-east-1.on.aws/"
+app.config['APPLICATION_ROOT'] = '/'  # Set this to your root path if necessary
+app.config['PREFERRED_URL_SCHEME'] = 'https'
+
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 
@@ -151,7 +146,7 @@ def register():
         # This line will authenticate the user with Flask-Login
         login_user(new_user)
         return redirect(url_for("get_all_posts"))
-    return render_template("register.html", form=form, current_user=current_user)
+    return render_template("register.html", form=form, current_user=current_user,  S3_ARN = os.environ.get("S3_ARN"))
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -174,7 +169,7 @@ def login():
             login_user(user)
             return redirect(url_for('get_all_posts'))
 
-    return render_template("login.html", form=form, current_user=current_user)
+    return render_template("login.html", form=form, current_user=current_user,  S3_ARN = os.environ.get("S3_ARN"))
 
 
 @app.route('/logout')
@@ -187,7 +182,7 @@ def logout():
 def get_all_posts():
     result = db.session.execute(db.select(BlogPost))
     posts = result.scalars().all()
-    return render_template("index.html", all_posts=posts, current_user=current_user)
+    return render_template("index.html", all_posts=posts, current_user=current_user,  S3_ARN = os.environ.get("S3_ARN"))
 
 
 # Add a POST method to be able to post comments
@@ -209,7 +204,7 @@ def show_post(post_id):
         )
         db.session.add(new_comment)
         db.session.commit()
-    return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form)
+    return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form,  S3_ARN = os.environ.get("S3_ARN"))
 
 
 # Use a decorator so only an admin user can create new posts
@@ -266,13 +261,44 @@ def delete_post(post_id):
 
 @app.route("/about")
 def about():
-    return render_template("about.html", current_user=current_user)
+    return render_template("about.html", current_user=current_user,  S3_ARN = os.environ.get("S3_ARN"))
 
 
 @app.route("/contact")
 def contact():
-    return render_template("contact.html", current_user=current_user)
+    return render_template("contact.html", current_user=current_user,  S3_ARN = os.environ.get("S3_ARN"))
 
+
+def handler(event, context):
+    with app.app_context():
+        try:
+            path = event.get('requestContext',"/").get('http',"/").get('path',"/")
+        except AttributeError:
+            path = "/"
+        with app.test_request_context(path=path):
+        
+            if path == '/':
+                response_body = get_all_posts()
+            elif path == '/register':
+                response_body = register()
+            elif path == '/login':
+                response_body = login()
+            elif path.startswith('/post'):
+                response_body = show_post(path.split("/")[2])
+            elif path == '/contact':
+                 response_body = contact()
+            elif path == '/about':
+                 response_body = about()
+            else:
+                response_body = event
+            
+            return {
+                "statusCode": 200 if response_body != event else 404,
+                "body": response_body,
+                "headers": {
+                    "Content-Type": "text/html"
+                }
+            }
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
