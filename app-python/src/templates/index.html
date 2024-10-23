@@ -47,7 +47,7 @@
       <!-- New Post -->
       <!-- Only show Create Post button if user id is 1 (admin user) -->
       
-      {% if current_user.is_authenticated: %}
+      {% if not current_user.is_authenticated: %}
 
       <div class="d-flex justify-content-end mb-4">
         <a

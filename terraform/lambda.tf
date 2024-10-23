@@ -1,3 +1,4 @@
+# Defile policy document, it will be used for the lambda role 
 data "aws_iam_policy_document" "lambda_trust_policy" {
   statement {
     effect  = "Allow"
@@ -9,38 +10,16 @@ data "aws_iam_policy_document" "lambda_trust_policy" {
   }
 }
 
-
+#Create lambda role
 resource "aws_iam_role" "lambda_role" {
   name               = "${var.main_resources_name}-role-${var.environment}"
   assume_role_policy = data.aws_iam_policy_document.lambda_trust_policy.json
 }
 
 # # Add "AWSLambdaBasicExecutionRole" to the role for the Lambda Function
-# resource "aws_iam_role_policy_attachment" "lambda_basic_execution_role" {
-#   role       = aws_iam_role.lambda_role.name
-#   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-# }
-
-resource "aws_iam_policy" "lambda_policy" {
-  name = "flask_lambda_policy"
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Effect   = "Allow",
-      Action   = [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      Resource = "arn:aws:logs:*:*:*"
-    },
-    {
-      Effect   = "Allow",
-      Action   = "s3:GetObject",
-      Resource = "${aws_s3_bucket.static_content.arn}/*"
-    }]
-  })
+resource "aws_iam_role_policy_attachment" "lambda_basic_execution_role" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
 
@@ -73,7 +52,7 @@ data "archive_file" "lambda_layer_package" {
   depends_on = [null_resource.lambda_layer_install_deps]
 }
 
-# Lambda Layer
+# Define Lambda Layer to package the require dependencies
 resource "aws_lambda_layer_version" "lambda_layer" {
   filename                 = "${local.lambda_layers_root_path}/modules/lambda_layer_package.zip"
   layer_name               = "${var.main_resources_name}-layer"
@@ -85,6 +64,7 @@ resource "aws_lambda_layer_version" "lambda_layer" {
 
 }
 
+# Create lambda function to process main.py
 resource "aws_lambda_function" "lambda" {
   function_name    = "${var.main_resources_name}-${var.environment}"
   filename         = "${local.src_root_path}/src.zip"
@@ -101,18 +81,21 @@ resource "aws_lambda_function" "lambda" {
     variables = {
       ENVIRONMENT = var.environment
       S3_ARN = "https://${aws_s3_bucket.static_content.id}.s3.amazonaws.com"
+      API_GW= split("://",aws_apigatewayv2_api.api_gateway.api_endpoint)[1]
     }
   }
 
   depends_on = [
     data.archive_file.lambda_source_package,
     data.archive_file.lambda_layer_package,
+    aws_apigatewayv2_api.api_gateway
   ]
 
 }
 
-resource "aws_lambda_function_url" "lambda_url" {
-  function_name      = aws_lambda_function.lambda.function_name
-  authorization_type = "NONE"
-}
+# Provide a url to test the lambda function (just for testing, leave commented)
+# resource "aws_lambda_function_url" "lambda_url" {
+#   function_name      = aws_lambda_function.lambda.function_name
+#   authorization_type = "NONE"
+# }
 

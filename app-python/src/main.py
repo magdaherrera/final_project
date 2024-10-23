@@ -20,10 +20,12 @@ app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 app.config['CKEDITOR_PKG_TYPE'] = 'basic'
 #app.config['CKEDITOR_CUSTOM_CONFIG'] = 'static/js/config.js'
 
-app.config['SERVER_NAME'] = "https://2nj6chaqvovtf6jn2zfxev4yc40gtynj.lambda-url.us-east-1.on.aws/"
+app.config['SERVER_NAME'] = os.environ.get("API_GW")
 app.config['APPLICATION_ROOT'] = '/'  # Set this to your root path if necessary
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 
+
+os.environ["S3_ARN"]="https://my-flask-static-content.s3.amazonaws.com"
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 
@@ -209,7 +211,6 @@ def show_post(post_id):
 
 # Use a decorator so only an admin user can create new posts
 @app.route("/new-post", methods=["GET", "POST"])
-#@admin_only
 def add_new_post():
     form = CreatePostForm()
     if form.validate_on_submit():
@@ -289,6 +290,9 @@ def handler(event, context):
                  response_body = contact()
             elif path == '/about':
                  response_body = about()
+            elif path == '/new-post':
+                response_body = event
+
             else:
                 response_body = event
             
