@@ -14,5 +14,6 @@ A simple web Flask project with frontend and backend.
 ## How do I deploy to this app to my aws account?
 1. Install aws CLI following [AWS CLI setup](https://docs.aws.amazon.com/cli/v1/userguide/install-linux.html)
 2. Configure aws CLI credentials following the method better suits your needs. See [AWS Credentials](https://docs.aws.amazon.com/cli/v1/userguide/cli-chap-configure.html)
+2. Make sure you have the **make** command installed. (Ubuntu users can run apt-get install make)
 2. terraform init
 3. terraform apply --auto-approve

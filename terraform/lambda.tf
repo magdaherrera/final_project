@@ -16,10 +16,34 @@ resource "aws_iam_role" "lambda_role" {
   assume_role_policy = data.aws_iam_policy_document.lambda_trust_policy.json
 }
 
+resource "aws_iam_policy" "lambda_dynamodb_policy" {
+  name = "lambda_dynamodb_policy"
+  description = "test policy"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action   = [
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:GetItem"
+        ],
+        Effect   = "Allow",
+        Resource = aws_dynamodb_table.product_table.arn
+      }
+    ]
+  })
+}
+
 # # Add "AWSLambdaBasicExecutionRole" to the role for the Lambda Function
 resource "aws_iam_role_policy_attachment" "lambda_basic_execution_role" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_dynamodb" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = aws_iam_policy.lambda_dynamodb_policy.arn
 }
 
 
@@ -82,13 +106,15 @@ resource "aws_lambda_function" "lambda" {
       ENVIRONMENT = var.environment
       S3_ARN = "https://${aws_s3_bucket.static_content.id}.s3.amazonaws.com"
       API_GW= split("://",aws_apigatewayv2_api.api_gateway.api_endpoint)[1]
+      TABLE_NAME = aws_dynamodb_table.product_table.name
     }
   }
 
   depends_on = [
     data.archive_file.lambda_source_package,
     data.archive_file.lambda_layer_package,
-    aws_apigatewayv2_api.api_gateway
+    aws_apigatewayv2_api.api_gateway,
+    aws_dynamodb_table.product_table
   ]
 
 }

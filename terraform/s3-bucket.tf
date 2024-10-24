@@ -1,6 +1,6 @@
 # S3 Bucket for Static Content
 resource "aws_s3_bucket" "static_content" {
-  bucket = "my-flask-static-content"
+  bucket = "my-flask-static-content-prueba1"
   tags = {
     Name = "StaticContentBucket"
   }
