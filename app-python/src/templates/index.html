@@ -3,7 +3,7 @@
 <!-- Page Header-->
 <header
   class="masthead"
-  style="background-image: url('https://my-flask-static-content.s3.amazonaws.com/static/assets/img/home-bg.jpg')"
+  style="background-image: url('{{ S3_ARN }}/static/assets/img/home-bg.jpg')"
 >
   <div class="container position-relative px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
@@ -23,19 +23,19 @@
       <!-- Post preview-->
       {% for post in all_posts %}
       <div class="post-preview">
-        <a href="{{ url_for('show_post', post_id=post.id) }}">
+        <a href="{{ url_for('show_post', post_id=post.get('id')) }}">
 
-          <h2 class="post-title">{{ post.title }}</h2>
-          <h3 class="post-subtitle">{{ post.subtitle }}</h3>
+          <h2 class="post-title">{{ post.get('title') }}</h2>
+          <h3 class="post-subtitle">{{ post.get('subtitle') }}</h3>
         </a>
         <p class="post-meta">
           Publicado por
           <!-- post.author.name is now a User object -->
-          <a href="#">{{post.author.name}}</a>
-          en {{post.date}}
+          <a href="#">{{post.get('author')}}</a>
+          en {{post.get('date')}}
           <!-- Only show delete button if user id is 1 (admin user) -->
-          {% if current_user.id == 1: %}
-          <a href="{{url_for('delete_post', post_id=post.id) }}">✘</a>
+          {% if current_user == 0: %}
+          <a href="{{url_for('delete_post', post_id=post.get('id')) }}">✘</a>
 
           {% endif %}
         </p>
@@ -47,12 +47,12 @@
       <!-- New Post -->
       <!-- Only show Create Post button if user id is 1 (admin user) -->
       
-      {% if not current_user.is_authenticated: %}
+      {% if not current_user == 1: %}
 
       <div class="d-flex justify-content-end mb-4">
         <a
           class="btn btn-primary float-right"
-          href="{{url_for('add_new_post')}}"
+          href= "{{ url_for('add_post') }}"
           >Crear Nuevo Post</a
         >
        

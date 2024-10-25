@@ -1,5 +1,3 @@
-{% from "bootstrap5/form.html" import render_form %}
-{% block content %}
 {% include "header.html" %}
 
 <!-- Page Header -->
@@ -26,14 +24,75 @@
 </header>
 
 <main class="mb-4">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-8 col-md-10 mx-auto">
-        {{ ckeditor.load() }}
-        {{ ckeditor.config(name='body') }}
-        {{ render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+  <div class="container px-4 px-lg-5">
+    <div class="row gx-4 gx-lg-5 justify-content-center">
+      <div class="col-md-10 col-lg-8 col-xl-7">
+        <div class="my-5">
+          <!-- * * * * * * * * * * * * * * *-->
+          <!-- * * Simplified SB Contact Form for the Tutorial* *-->
+          <form
+            id="postForm"
+            name="sentMessage"
+            action="{{ url_for('add_post') }}"
+            method="post"
+          >
+            <div class="form-floating">
+              <input
+                class="form-control"
+                id="title"
+                name="title"
+                type="text"
+                placeholder="Enter your title..."
+                required
+              />
+              <label for="name">Título</label>
+            </div>
+            <div class="form-floating">
+              <input
+                class="form-control"
+                id="subtitle"
+                name="subtitle"
+                type="text"
+                placeholder="Enter your subtitle..."
+                required
+              />
+              <label for="subtitle">Subtítulo</label>
+            </div>
+            <div class="form-floating">
+              <input
+                class="form-control"
+                id="image_url"
+                name="image_url"
+                type="url"
+                placeholder="Enter your image_url..."
+                required
+              />
+              <label for="subtitle">Url</label>
+            </div>
+            <div class="form-floating">
+              <textarea
+                class="form-control"
+                id="content"
+                name="content"
+                placeholder="Enter your message content..."
+                required
+                style="height: 12rem"
+              ></textarea>
+              <label for="content">Contenido</label>
+            </div>
+            <br />
+            <button
+              class="btn btn-danger text-uppercase"
+              id="submitButton"
+              type="submit"
+            >
+              Enviar
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 </main>
-{% include "footer.html" %} {% endblock %}
+
+{% include "footer.html" %}

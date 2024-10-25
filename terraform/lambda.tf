@@ -35,17 +35,44 @@ resource "aws_iam_policy" "lambda_dynamodb_policy" {
   })
 }
 
+resource "aws_iam_policy" "lambda_invoke_policy" {
+  name = "lambda_invoke_policy"
+  description = "test policy"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+            {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": "lambda:InvokeFunction",
+            "Resource": aws_lambda_function.insertarDatoslambda.arn
+          }
+        ]
+      }
+    ]
+  })
+}
+
 # # Add "AWSLambdaBasicExecutionRole" to the role for the Lambda Function
 resource "aws_iam_role_policy_attachment" "lambda_basic_execution_role" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+# Add dynamodb policy to the role for the Lambda Function
+resource "aws_iam_role_policy_attachment" "lambda_invoke_lambda" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = aws_iam_policy.lambda_invoke_policy.arn
+}
+
+# Add lambda invoke to the role for the Lambda Function
+
 resource "aws_iam_role_policy_attachment" "lambda_dynamodb" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.lambda_dynamodb_policy.arn
 }
-
 
 # Create ZIP file for the source code at deployment time
 data "archive_file" "lambda_source_package" {

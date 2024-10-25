@@ -34,6 +34,8 @@ resource "aws_iam_policy" "lambda_dynamodb_policy_test" {
           "dynamodb:PutItem",
           "dynamodb:UpdateItem",
           "dynamodb:GetItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:Scan",
         ],
         Effect   = "Allow",
         Resource = aws_dynamodb_table.bird_table.arn
