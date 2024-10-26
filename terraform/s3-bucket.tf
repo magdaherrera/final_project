@@ -1,12 +1,9 @@
 # S3 Bucket for Static Content
 resource "aws_s3_bucket" "static_content" {
-  bucket = "my-flask-static-content-prueba1"
-  tags = {
-    Name = "StaticContentBucket"
-  }
+  bucket = "s3-static-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}"
+  tags = var.aws_resource_tags
 }
-
-#
+# S3 bucket owner controls
 resource "aws_s3_bucket_ownership_controls" "example" {
   bucket = aws_s3_bucket.static_content.id
   rule {
@@ -41,7 +38,4 @@ resource "aws_s3_object" "static_files" {
   source = "${local.static_folder_root_path}/${each.value}"  # The local file to upload
   content_type = contains(split(".", each.value),"css") ? "text/css" : "application/octet-stream"
 
-  metadata = {
-    "content-type" = contains(split(".", each.value),"css") ? "text/css" : "application/octet-stream"
-  }
 }

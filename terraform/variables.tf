@@ -10,14 +10,26 @@ variable "main_resources_name" {
   default     = "flask-lambda"
 }
 
+variable "lambda_function_name_dynamo" {
+  type        = string
+  description = "Name for lambda function to work with dynamodb resource"
+  default     = "CrudDynamoDBFunction"
+}
+
+variable "lambda_python_runtime" {
+  type        = string
+  description = "Default version for python in lambda"
+  default     = "python3.12"
+}
+
 
 variable "aws_resource_tags" {
   type        = map(string)
   description = "Tags to be applied to each resource this TF configuration creates."
   default = {
-    project     = "project-alpha"
+    project     = "flask-app"
     version     = "1.2"
-    environment = "prod"
+    environment = "dev"
     owner       = "dz@dzcol.com"
   }
 }

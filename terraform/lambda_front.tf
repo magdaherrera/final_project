@@ -10,33 +10,15 @@ data "aws_iam_policy_document" "lambda_trust_policy" {
   }
 }
 
-#Create lambda role
+#Create lambda role for frontend lambda
 resource "aws_iam_role" "lambda_role" {
-  name               = "${var.main_resources_name}-role-${var.environment}"
+  name               = "iam-role-lambda-front-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}"
   assume_role_policy = data.aws_iam_policy_document.lambda_trust_policy.json
 }
 
-resource "aws_iam_policy" "lambda_dynamodb_policy" {
-  name = "lambda_dynamodb_policy"
-  description = "test policy"
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Action   = [
-          "dynamodb:PutItem",
-          "dynamodb:UpdateItem",
-          "dynamodb:GetItem"
-        ],
-        Effect   = "Allow",
-        Resource = aws_dynamodb_table.product_table.arn
-      }
-    ]
-  })
-}
-
+# Create iam policy for lambda invokation
 resource "aws_iam_policy" "lambda_invoke_policy" {
-  name = "lambda_invoke_policy"
+  name = "lambda_invoke_policy-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}"
   description = "test policy"
   policy = jsonencode({
     Version = "2012-10-17",
@@ -61,18 +43,12 @@ resource "aws_iam_role_policy_attachment" "lambda_basic_execution_role" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-# Add dynamodb policy to the role for the Lambda Function
+# Add lambda invoke to the role for the Lambda Function
 resource "aws_iam_role_policy_attachment" "lambda_invoke_lambda" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.lambda_invoke_policy.arn
 }
 
-# Add lambda invoke to the role for the Lambda Function
-
-resource "aws_iam_role_policy_attachment" "lambda_dynamodb" {
-  role       = aws_iam_role.lambda_role.name
-  policy_arn = aws_iam_policy.lambda_dynamodb_policy.arn
-}
 
 # Create ZIP file for the source code at deployment time
 data "archive_file" "lambda_source_package" {
@@ -121,7 +97,7 @@ resource "aws_lambda_function" "lambda" {
   filename         = "${local.src_root_path}/src.zip"
   handler          = "main.handler"
   role             = aws_iam_role.lambda_role.arn
-  runtime          = "python3.12"
+  runtime          = var.lambda_python_runtime
   timeout          = 20
   architectures    = ["x86_64"]
   layers           = [aws_lambda_layer_version.lambda_layer.arn]
@@ -133,15 +109,13 @@ resource "aws_lambda_function" "lambda" {
       ENVIRONMENT = var.environment
       S3_ARN = "https://${aws_s3_bucket.static_content.id}.s3.amazonaws.com"
       API_GW= split("://",aws_apigatewayv2_api.api_gateway.api_endpoint)[1]
-      TABLE_NAME = aws_dynamodb_table.product_table.name
     }
   }
 
   depends_on = [
     data.archive_file.lambda_source_package,
     data.archive_file.lambda_layer_package,
-    aws_apigatewayv2_api.api_gateway,
-    aws_dynamodb_table.product_table
+    aws_apigatewayv2_api.api_gateway
   ]
 
 }

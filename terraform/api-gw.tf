@@ -1,6 +1,6 @@
 # API Gateway for Lambda
 resource "aws_apigatewayv2_api" "api_gateway" {
-  name          = "flask-api"
+  name          = "apw-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}"
   protocol_type = "HTTP"
 }
 

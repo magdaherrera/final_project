@@ -169,7 +169,6 @@ def handler(event, context):
      
     if event.get('isBase64Encoded'):
         body = base64.b64decode(event.get('body'))
-    
     else:
         body = event.get('body')
 

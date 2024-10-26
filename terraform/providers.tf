@@ -8,13 +8,13 @@ terraform {
   }
 
   #Store state file in remote aws s3 backend
-  backend "s3" {
-    #why cannot used variables here
-    bucket  = "terraform-aws-service-infra"
-    key     = "terraform-talento-tech-production/terraform.tfstate"
-    region  = "us-east-1"
-    encrypt = true
-  }
+  # backend "s3" {
+  #   #why cannot used variables here
+  #   bucket  = "terraform-aws-service-infra"
+  #   key     = "terraform-talento-tech-production/terraform.tfstate"
+  #   region  = "us-east-1"
+  #   encrypt = true
+  # }
 
 }
 
