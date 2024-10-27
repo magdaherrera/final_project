@@ -3,10 +3,11 @@ from botocore.exceptions import ClientError
 
 # Init resource conection
 dynamodb = boto3.resource('dynamodb')
-
+table_name = os.environ.get("TABLE_NAME")
+ 
 # Define function entry point to handle invokations
-def lambda_handler(event, context):
-    table_name = os.environ.get("TABLE_NAME")
+def handler(event, context):
+   
     table = dynamodb.Table(table_name)
     
     try:
@@ -46,7 +47,23 @@ def lambda_handler(event, context):
                     'statusCode': 200,
                     'body': json.dumps('Data deleted successfully!')
             }
-           
+
+        elif action == "update":
+            item = event.get("item")
+            update_expression = event.get("update_expression")
+            expression_values = event.get("expression_values")
+            
+            response = table.update_item(
+                Key=item,
+                UpdateExpression=update_expression,
+                ExpressionAttributeValues=expression_values,
+                ReturnValues="UPDATED_NEW"
+            )
+        
+        return {
+            "status": "Item updated",
+            "updated_attributes": response.get("Attributes", {})
+        }
     
     except ClientError as e:
         return {

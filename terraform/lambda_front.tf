@@ -12,29 +12,24 @@ data "aws_iam_policy_document" "lambda_trust_policy" {
 
 #Create lambda role for frontend lambda
 resource "aws_iam_role" "lambda_role" {
-  name               = "iam-role-lambda-front-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}"
+  name               = lower("iam-role-lambda-front-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}")
   assume_role_policy = data.aws_iam_policy_document.lambda_trust_policy.json
 }
 
 # Create iam policy for lambda invokation
 resource "aws_iam_policy" "lambda_invoke_policy" {
-  name = "lambda_invoke_policy-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}"
+  name = lower("lambda_invoke_policy-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}")
   description = "test policy"
   policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-            {
-        "Version": "2012-10-17",
-        "Statement": [
-          {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
             "Effect": "Allow",
             "Action": "lambda:InvokeFunction",
             "Resource": aws_lambda_function.insertarDatoslambda.arn
-          }
-        ]
-      }
+        }
     ]
-  })
+})
 }
 
 # # Add "AWSLambdaBasicExecutionRole" to the role for the Lambda Function
@@ -93,7 +88,7 @@ resource "aws_lambda_layer_version" "lambda_layer" {
 
 # Create lambda function to process main.py
 resource "aws_lambda_function" "lambda" {
-  function_name    = "${var.main_resources_name}-${var.environment}"
+  function_name    = lower("lambda-front-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}")
   filename         = "${local.src_root_path}/src.zip"
   handler          = "main.handler"
   role             = aws_iam_role.lambda_role.arn
@@ -108,14 +103,17 @@ resource "aws_lambda_function" "lambda" {
     variables = {
       ENVIRONMENT = var.environment
       S3_ARN = "https://${aws_s3_bucket.static_content.id}.s3.amazonaws.com"
+      CDN_ARN = "https://${aws_cloudfront_distribution.cdn.domain_name}"
       API_GW= split("://",aws_apigatewayv2_api.api_gateway.api_endpoint)[1]
+      FUNCTION_NAME = aws_lambda_function.insertarDatoslambda.function_name
     }
   }
 
   depends_on = [
     data.archive_file.lambda_source_package,
     data.archive_file.lambda_layer_package,
-    aws_apigatewayv2_api.api_gateway
+    aws_apigatewayv2_api.api_gateway,
+    aws_cloudfront_distribution.cdn
   ]
 
 }

@@ -17,8 +17,8 @@ app.config['APPLICATION_ROOT'] = '/'
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 
 
-os.environ["S3_ARN"]="https://my-flask-static-content.s3.amazonaws.com"
-S3_ARN = os.environ.get("S3_ARN")
+S3_ARN = os.environ.get("CDN_ARN")
+FUNCTION_NAME = os.environ.get("FUNCTION_NAME")
 
 Bootstrap5(app)
 
@@ -43,7 +43,7 @@ def get_all_posts():
             }
     
     response = get_lambda_client.invoke(
-        FunctionName='InsertDynamoDBFunction',
+        FunctionName=FUNCTION_NAME,
         InvocationType='RequestResponse',
         Payload=json.dumps(payload)
     )
@@ -71,7 +71,7 @@ def show_post(post_id):
             }
     
     response = get_lambda_client.invoke(
-        FunctionName='InsertDynamoDBFunction',
+        FunctionName=FUNCTION_NAME,
         InvocationType='RequestResponse',
         Payload=json.dumps(payload)
     )
@@ -109,11 +109,13 @@ def add_post():
                     "subtitle": subtitle,
                     "image_url": image_url,
                     "content": content,
+                    "author": "user",
+                    "date": date.today().strftime("%Y-%b-%d")
                 }
             }
     
             response = post_lambda_client.invoke(
-                FunctionName='InsertDynamoDBFunction',
+                FunctionName=FUNCTION_NAME,
                 InvocationType='RequestResponse',
                 Payload=json.dumps(payload)
             )
@@ -138,7 +140,7 @@ def delete_post(post_id):
             }
     
     response = delete_lambda_client.invoke(
-        FunctionName='InsertDynamoDBFunction',
+        FunctionName=FUNCTION_NAME,
         InvocationType='RequestResponse',
         Payload=json.dumps(payload)
     )
@@ -147,8 +149,54 @@ def delete_post(post_id):
     
 @app.route("/edit-post/<int:post_id>", methods=["GET", "POST"])
 def edit_post(post_id):
+    get_lambda_client = boto3.client('lambda')
+    payload= { 
+        "action": "get_one",
+        "item": {
+                "id":f"{post_id}"
+            }
+        }
+
+    response = get_lambda_client.invoke(
+        FunctionName=FUNCTION_NAME,
+        InvocationType='RequestResponse',
+        Payload=json.dumps(payload)
+    )
+    post =  json.loads(response['Payload'].read().decode('utf-8'))
+    post = json.loads(post.get("body"))
     
-    return render_template("home.html", form=[], is_edit=True, current_user=0)
+    if request.method == "GET":
+        return render_template("make-post.html", post=post, is_edit=True, current_user=0)
+    elif request.method == "POST":
+
+        title = request.form.get('title')
+        subtitle = request.form.get('subtitle')
+        image_url = request.form.get('image_url')
+        content = request.form.get('content')
+    
+        payload = {
+                "action": "update",
+                "item": {
+                    "id": f"{post_id}"
+                },
+                "update_expression": "SET title = :title, subtitle = :subtitle, image_url = :image_url, content = :content",
+                "expression_values": {
+                    ":title": title,
+                    ":subtitle": subtitle,
+                    "image_url": image_url,
+                    ":content": content
+                }
+            
+            }
+
+        response = get_lambda_client.invoke(
+        FunctionName=FUNCTION_NAME,
+        InvocationType='RequestResponse',
+        Payload=json.dumps(payload)
+    )
+     
+    return redirect(url_for("show_post", post_id=post_id))
+
 
 
 @app.route("/about")

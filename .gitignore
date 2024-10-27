@@ -255,4 +255,6 @@ override.tf.json
 terraform.rc
 *lock.hcl
 
+#Ignore custom folders
+tests
 # End of https://www.toptal.com/developers/gitignore/api/terraform

@@ -6,12 +6,12 @@ data "archive_file" "back_lambda_source_package" {
 }
 
 resource "aws_lambda_function" "insertarDatoslambda" {
-  function_name = "${var.lambda_function_name_dynamo}-${random_string.id.result}"
+  function_name = lower("${var.lambda_function_name_dynamo}-${random_string.id.result}")
   filename      = "${local.src_root_path}/back.zip"
   role          = aws_iam_role.lambda_exec.arn
   handler       = "main.handler"
   runtime       = var.lambda_python_runtime                  
-  source_code_hash = filebase64sha256("lambda_function.zip")
+  source_code_hash = data.archive_file.back_lambda_source_package.output_base64sha256
 
   environment {
     variables = {

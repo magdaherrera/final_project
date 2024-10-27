@@ -13,7 +13,7 @@ variable "main_resources_name" {
 variable "lambda_function_name_dynamo" {
   type        = string
   description = "Name for lambda function to work with dynamodb resource"
-  default     = "CrudDynamoDBFunction"
+  default     = "Crud-DynamoDB-Function"
 }
 
 variable "lambda_python_runtime" {

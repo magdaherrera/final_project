@@ -3,7 +3,7 @@
 <!-- Page Header -->
 <header
   class="masthead"
-  style="background-image: url('https://my-flask-static-content.s3.amazonaws.com/static/assets/img/edit-bg.jpg')"
+  style="background-image: url('{{ S3_ARN }}/static/assets/img/edit-bg.jpg')"
 >
   <div class="container position-relative px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
@@ -33,7 +33,12 @@
           <form
             id="postForm"
             name="sentMessage"
-            action="{{ url_for('add_post') }}"
+            {% if is_edit: %}
+              action="{{ url_for('edit_post', post_id=post.get('id')) }}"
+            {% else: %}
+              action="{{ url_for('add_post') }}"
+            {% endif %}
+            
             method="post"
           >
             <div class="form-floating">
@@ -44,8 +49,11 @@
                 type="text"
                 placeholder="Enter your title..."
                 required
+              {% if is_edit: %}
+                value="{{ post.get('title') }}"
+              {% endif %}
               />
-              <label for="name">Título</label>
+              <label for="title">Título</label>
             </div>
             <div class="form-floating">
               <input
@@ -55,6 +63,9 @@
                 type="text"
                 placeholder="Enter your subtitle..."
                 required
+                {% if is_edit: %}
+                value="{{ post.get('subtitle') }}"
+                {% endif %}
               />
               <label for="subtitle">Subtítulo</label>
             </div>
@@ -66,8 +77,11 @@
                 type="url"
                 placeholder="Enter your image_url..."
                 required
+                {% if is_edit: %}
+                value="{{ post.get('image_url') }}"
+                {% endif %}
               />
-              <label for="subtitle">Url</label>
+              <label for="image_url">Url</label>
             </div>
             <div class="form-floating">
               <textarea
@@ -77,7 +91,7 @@
                 placeholder="Enter your message content..."
                 required
                 style="height: 12rem"
-              ></textarea>
+              >{% if is_edit: %}{{post.get('content')}}{% endif %}</textarea>
               <label for="content">Contenido</label>
             </div>
             <br />

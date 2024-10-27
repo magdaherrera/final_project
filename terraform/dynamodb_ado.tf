@@ -1,6 +1,6 @@
 # Create Dynamodb table
 resource "aws_dynamodb_table" "bird_table" {
-  name           = "dynamo-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}"
+  name           = lower("dynamo-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}")
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "id"
 
@@ -14,7 +14,7 @@ resource "aws_dynamodb_table" "bird_table" {
 
 # IAM Role to be assumed by lambda
 resource "aws_iam_role" "lambda_exec" {
-  name = "iam-role-lambda-back-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}"
+  name = lower("iam-role-lambda-back-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}")
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -32,7 +32,7 @@ resource "aws_iam_role" "lambda_exec" {
 
 # IAM policy to access dynamodb
 resource "aws_iam_policy" "lambda_dynamodb_policy_test" {
-  name        = "iam-policy-dynamo-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}"
+  name        = lower("iam-policy-dynamo-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}")
   description = "Policy that allows Lambda to write to DynamoDB"
 
   policy = jsonencode({

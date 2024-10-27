@@ -1,6 +1,6 @@
 # S3 Bucket for Static Content
 resource "aws_s3_bucket" "static_content" {
-  bucket = "s3-static-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}"
+  bucket = lower("s3-static-${var.aws_resource_tags["project"]}-${var.aws_resource_tags["environment"]}-${random_string.id.result}")
   tags = var.aws_resource_tags
 }
 # S3 bucket owner controls
