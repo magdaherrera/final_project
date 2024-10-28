@@ -1,8 +1,5 @@
 //WAF Configuration
 # Configuración de los proveedores
-/*provider "aws" {
-  region = "us-east-1" # Reemplaza con tu región
-}*/
 
 # Creación de la Web ACL CloudFront
 

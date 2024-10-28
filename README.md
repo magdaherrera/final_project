@@ -17,3 +17,4 @@ A simple web Flask project with frontend and backend.
 2. Make sure you have the **make** command installed. (Ubuntu users can run apt-get install make)
 2. terraform init
 3. terraform apply --auto-approve
+# final_project
