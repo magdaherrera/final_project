@@ -23,9 +23,7 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
     Statement = [
       {
         Effect = "Allow",
-        Principal = {
-          "Service": "cloudfront.amazonaws.com"
-        },
+        Principal = "*",
         Action = "s3:GetObject",
         Resource = "${aws_s3_bucket.static_content.arn}/*",
         # Condition = {
@@ -46,7 +44,7 @@ resource "aws_cloudfront_distribution" "cdn" {
   }
 
   enabled = true
-
+  web_acl_id = aws_wafv2_web_acl.waf_cloudfront_bird_bogota.arn
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD"]
     cached_methods   = ["GET", "HEAD"]
